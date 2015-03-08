@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 import csv, math
 from sklearn import datasets, svm, preprocessing
 from datetime import datetime
+from sklearn.cross_validation import train_test_split
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import classification_report
+from sklearn.svm import SVC
+from sklearn import linear_model
 
 def main():
     
@@ -17,11 +22,12 @@ def main():
     min_max_scaler = preprocessing.MinMaxScaler()
     X_train = min_max_scaler.fit_transform(np.array(filter_X(training_data), dtype = 'float_'))
     y_train = filter_y(training_data)
-    #np.set_printoptions(threshold=np.nan)    
-    
-    #print the training data to check values
-    print X_train
-    print y_train
+    #np.set_printoptions(threshold=np.nan)   
+     
+    """
+    # Split the dataset in two equal parts
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+    """
     
     #using reader to get all the bike sharing X_test data from the "test.csv"
     print "Reading from test.csv file."
@@ -29,17 +35,38 @@ def main():
     reader_list_output = list(reader)
     test_data = np.array(reader_list_output)
     
+    
     #parse the X_test data form the test_data
     print "Parsing and filtering the test data."    
     X_test = min_max_scaler.fit_transform(np.array(filter_X(test_data), dtype = 'float_'))
     print X_test
     
+    """
     #create the linear SVM model and make a pred iction on the training set
     lin_clf = svm.LinearSVC()
     print "Using SVM and the training data to build/fit a model."
-    lin_clf.fit(X_train, y_train)
+    print lin_clf.fit(X_train, y_train)
     print "Using fit to make prediction on X_test data."
     y_test = lin_clf.predict(X_test)
+    """
+    #create a lasso model and make a prediction on the training set
+    clf = linear_model.Ridge(alpha=1.0)
+    print "Using Lasso and the training data to build a model"
+    clf.fit(X_train, y_train)
+    print "Using fit to make prediction on X_test data"
+    y_test = clf.predict(X_test)
+    
+    """
+    #np.set_printoptions(threshold=np.nan)
+    y_output = lin_clf.predict(X_test)
+    print y_output
+    print type(y_output)
+    print y_test
+    print type(y_test)
+    for row_index in range(0, len(y_test)):
+        print "%d: %s, %s, %s" % (row_index, str(X_test[row_index][0]), str(y_test[row_index]), str(y_output[row_index]))
+    #print np.concatenate((y_output, y_test.T), axis=1) 
+    """
     
     #print to see the predicted count of bikes
     print y_test
@@ -49,8 +76,8 @@ def main():
     print y_test_output
     
     #write results to csv
-    print "Writing predictions to bike_sharing_svm_linear.csv"
-    results = open('bike_sharing_svm_linear.csv', 'w')
+    print "Writing predictions to bike_sharing_ridge_march_8.8.csv"
+    results = open('bike_sharing_ridge_march_8.8.csv', 'w')
     #header required by Kaggle: datetime,count
     results.write('datetime,count')
     #rows (predictions)
@@ -72,7 +99,7 @@ def filter_X(training_data):
         #find the sin values for exploded datetime day and hour, row_index+1 to account for the title row in train.csv
         date_object = datetime.strptime(training_data[row_index+1][0].astype('str'), '%Y-%m-%d %H:%M:%S')        
         X_train[row_index][0] = day_to_sin_val(date_object.timetuple().tm_yday)
-        X_train[row_index][1] = hour_to_sin_val(date_object.hour)
+        X_train[row_index][1] = 100*hour_to_sin_val(date_object.hour)
         
         #just translate all other information untouched into the filtered data
         X_train[row_index][2] = training_data[row_index+1][1]
