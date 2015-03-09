@@ -46,9 +46,9 @@ def main():
         
     print "Normalizing the filtered test and training data"
     #note that this fit_trasnform function is normalizing the data to the range [0,1]
-    min_max_scaler = preprocessing.MinMaxScaler()
-    X_train = min_max_scaler.fit_transform(X_train_filtered)
-    X_test = min_max_scaler.fit_transform(X_test_filtered)
+    #min_max_scaler = preprocessing.MinMaxScaler()
+    #X_train = min_max_scaler.fit_transform(X_train_filtered)
+    #X_test = min_max_scaler.fit_transform(X_test_filtered)
     X_train = tune_X(X_train_filtered)
     X_test = tune_X(X_test_filtered)
     
@@ -62,14 +62,14 @@ def main():
     difference = parse_difference(predicted, actual)
     
     #concatonate the desired information for csv review    
-    to_csv = np.hstack((predicted, actual, difference))
+    to_csv = np.hstack((X_test, predicted, actual, difference))
     
     #write results to csv
     print "Writing predictions to bike_sharing_output.csv"
     results = open('bike_sharing_output.csv', 'w')
     #header are as follows:
-    results.write('predicted\t\t\tactual\t\t\tlog_sq_diff\n')
-    np.savetxt(results, to_csv, delimiter='\t\t\t', fmt='%s')
+    results.write('month,day_of_week,hour,predicted,actual,log_sq_diff\n')
+    np.savetxt(results, to_csv, delimiter=',', fmt='%s')
 
     #evaluate the predictive algorithm method
     evaluation(predicted, actual)
@@ -92,10 +92,11 @@ def tune_X(X):
 
 def filter_X_Simple(training_data, header_present=False):
     #depending on if we want to get rid of the header we have set the flag header present to true, skip first row
+    
     if header_present:
     
         #output will be of form: {day sin val, hour sin val, season, holiday, workday, weather, temp, atemp, humidity, windspeed }
-        X_train = np.empty([len(training_data) - 1, 3], dtype=float)
+        X_train = np.empty([len(training_data) - 1, 4], dtype=float)
     
         #find the output by indexing and filtering/exploding
         for row_index in range(0, len(training_data) - 1):
@@ -106,12 +107,13 @@ def filter_X_Simple(training_data, header_present=False):
             X_train[row_index][0] = date_object.month
             X_train[row_index][1] = date_object.isoweekday()
             X_train[row_index][2] = date_object.hour
-    
+            X_train[row_index][3] = training_data[row_index+1][4]
+            
         #return the filtered/exploded data
         return X_train
     
     #if the method reaches this point then we know a header wasn't present and we can parse appropriately
-    X_train = np.empty([len(training_data), 3], dtype=float)
+    X_train = np.empty([len(training_data), 4], dtype=float)
     
     #find the output by indexing and filtering/exploding
     for row_index in range(0, len(training_data) - 1):
@@ -122,6 +124,7 @@ def filter_X_Simple(training_data, header_present=False):
         X_train[row_index][0] = date_object.month
         X_train[row_index][1] = date_object.isoweekday()
         X_train[row_index][2] = date_object.hour
+        X_train[row_index][3] = training_data[row_index][4]
 
     #return the filtered/exploded data
     return X_train
