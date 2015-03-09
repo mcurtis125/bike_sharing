@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv, math
-from sklearn import datasets, svm, preprocessing
+from sklearn import datasets, svm, preprocessing, ensemble
 from datetime import datetime
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
@@ -37,10 +37,12 @@ def main():
     X_test = min_max_scaler.fit_transform(np.array(filter_X(test_data), dtype = 'float_'))
     print X_test
     
-    #create a lasso model and make a prediction on the training set
-    clf = linear_model.Ridge(alpha=1.0)
-    print "Using Lasso and the training data to build a model"
+    #create a model
+    clf = ensemble.GradientBoostingRegressor(n_estimators=1000, learning_rate=0.01, max_depth=3, min_samples_split=1, loss='ls')
+    #clf = ensemble.GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=1, random_state=0, loss='ls')
+    print "Using Algorithm and the training data to build a model"
     clf.fit(X_train, y_train)
+    #print "clf.alpha: %f" %(clf.alpha)
     print "Using fit to make prediction on X_test data"
     y_test = clf.predict(X_test)
     
@@ -51,8 +53,8 @@ def main():
     print y_test_output
     
     #write results to csv
-    print "Writing predictions to bike_sharing_ridge_march_8.8.csv"
-    results = open('bike_sharing_ridge_march_8.8.csv', 'w')
+    print "Writing predictions to bike_sharing_ridge_march_8.9.csv"
+    results = open('bike_sharing_ridge_march_8.9.csv', 'w')
     #header required by Kaggle: datetime,count
     results.write('datetime,count')
     #rows (predictions)
@@ -88,6 +90,43 @@ def filter_X(training_data):
     
     #return the filtered/exploded data
     return X_train
+
+def filter_X_Simple(training_data, header_present=False):
+    #depending on if we want to get rid of the header we have set the flag header present to true, skip first row
+    if header_present:
+    
+        #output will be of form: {day sin val, hour sin val, season, holiday, workday, weather, temp, atemp, humidity, windspeed }
+        X_train = np.empty([len(training_data) - 1, 3], dtype=float)
+    
+        #find the output by indexing and filtering/exploding
+        for row_index in range(0, len(training_data) - 1):
+        
+            #find the sin values for exploded datetime day and hour, row_index+1 to account for the title row in train.csv
+            date_object = datetime.strptime(training_data[row_index+1][0].astype('str'), '%Y-%m-%d %H:%M:%S')        
+        
+            X_train[row_index][0] = date_object.month
+            X_train[row_index][1] = date_object.isoweekday()
+            X_train[row_index][2] = date_object.hour
+    
+        #return the filtered/exploded data
+        return X_train
+    
+    #if the method reaches this point then we know a header wasn't present and we can parse appropriately
+    X_train = np.empty([len(training_data), 3], dtype=float)
+    
+    #find the output by indexing and filtering/exploding
+    for row_index in range(0, len(training_data) - 1):
+    
+        #find the sin values for exploded datetime day and hour, row_index+1 to account for the title row in train.csv
+        date_object = datetime.strptime(training_data[row_index][0].astype('str'), '%Y-%m-%d %H:%M:%S')        
+        
+        X_train[row_index][0] = date_object.month
+        X_train[row_index][1] = date_object.isoweekday()
+        X_train[row_index][2] = date_object.hour
+
+    #return the filtered/exploded data
+    return X_train
+
 
 #method to appropriately filter the y_train data from the training_data
 def filter_y(training_data):

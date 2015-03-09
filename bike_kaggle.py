@@ -1,26 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv, math
-from sklearn import datasets, svm, preprocessing
+from sklearn import datasets, svm, preprocessing, linear_model, ensemble
 from datetime import datetime
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
-from sklearn import linear_model
-from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import BaggingClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import ElasticNet, ElasticNetCV, LassoLarsIC, LassoLarsCV, LarsCV
 
 #method to change the predictor we are using
 def predict(X_train, y_train, X_test):
-        
-    #create a elastic model and make a prediction on the training set
-    elastic = ElasticNetCV()
+    
+    #create a model and make a prediction on the training set
+    clf = ensemble.GradientBoostingRegressor(n_estimators=1000, learning_rate=0.01, max_depth=3, min_samples_split=1, loss='ls')
+    #clf = ensemble.GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=1, random_state=0, loss='ls')
     print "Using Algorithm and the training data to build a model"
-    elastic.fit(X_train, y_train)
+    clf.fit(X_train, y_train)
+    #print "clf.alpha: %f" %(clf.alpha)
     print "Using fit to make prediction on X_test data"
-    y_test = elastic.predict(X_test)
+    y_test = clf.predict(X_test)
     
     #filter the predicted data to reverse the natural log
     return filter_predicted_data(y_test)
@@ -39,10 +40,10 @@ def main():
     
     #filtering the training and test data
     print "Parsing and filtering the test and training data."
-    X_train_filtered = filter_X(training_data, header_present=True)
-    X_test_filtered = filter_X(test_data)
-    y_train = filter_y(training_data)
-    
+    X_train_filtered = np.array( filter_X_Simple(training_data, header_present=True), dtype='float' )
+    X_test_filtered = np.array( filter_X_Simple(test_data), dtype='float' )
+    y_train = np.array( filter_y(training_data), dtype='float' )
+        
     print "Normalizing the filtered test and training data"
     #note that this fit_trasnform function is normalizing the data to the range [0,1]
     min_max_scaler = preprocessing.MinMaxScaler()
@@ -65,10 +66,10 @@ def main():
     
     #write results to csv
     print "Writing predictions to bike_sharing_output.csv"
-    results = open('bike_sharingm_output.csv', 'w')
+    results = open('bike_sharing_output.csv', 'w')
     #header are as follows:
-    results.write('day_of_year,hour_of_day,season,holiday,workingday,weather,temp,atemp,humidity,windspeed,count,datetime,predicted,actual,log_sq_diff\n')
-    np.savetxt(results, to_csv, delimiter=',', fmt='%s')
+    results.write('predicted\t\t\tactual\t\t\tlog_sq_diff\n')
+    np.savetxt(results, to_csv, delimiter='\t\t\t', fmt='%s')
 
     #evaluate the predictive algorithm method
     evaluation(predicted, actual)
@@ -77,7 +78,7 @@ def main():
     #checking normalization and filtering of day and hour sin vals
     for row in range(0, len(X_test), 100):
         print "datetime: %s" % ( str(test_data[row][0]) )
-        print "day_in_year: %s\thour_in_day: %s" % ( str(filtered_X_test[row][0]), str(filtered_X_test[row][1]) )
+        print "day_in_year: %s\thour_in_day: %s" % ( str(X_test_filtered[row][0]), str(X_test_filtered[row][1]) )
         print "norm_day_in: %s\tnorm_hor_in: %s\t" % ( str(X_test[row][0]), str(X_test[row][1]) )
     """
 
@@ -85,8 +86,45 @@ def main():
 def tune_X(X):
     X_tuned = X
     for row_index in range(0, len(X)):
+        X_tuned[row_index][0] = 1*X[row_index][0]
         X_tuned[row_index][1] = 1*X[row_index][1]
     return X_tuned
+
+def filter_X_Simple(training_data, header_present=False):
+    #depending on if we want to get rid of the header we have set the flag header present to true, skip first row
+    if header_present:
+    
+        #output will be of form: {day sin val, hour sin val, season, holiday, workday, weather, temp, atemp, humidity, windspeed }
+        X_train = np.empty([len(training_data) - 1, 3], dtype=float)
+    
+        #find the output by indexing and filtering/exploding
+        for row_index in range(0, len(training_data) - 1):
+        
+            #find the sin values for exploded datetime day and hour, row_index+1 to account for the title row in train.csv
+            date_object = datetime.strptime(training_data[row_index+1][0].astype('str'), '%Y-%m-%d %H:%M:%S')        
+        
+            X_train[row_index][0] = date_object.month
+            X_train[row_index][1] = date_object.isoweekday()
+            X_train[row_index][2] = date_object.hour
+    
+        #return the filtered/exploded data
+        return X_train
+    
+    #if the method reaches this point then we know a header wasn't present and we can parse appropriately
+    X_train = np.empty([len(training_data), 3], dtype=float)
+    
+    #find the output by indexing and filtering/exploding
+    for row_index in range(0, len(training_data) - 1):
+    
+        #find the sin values for exploded datetime day and hour, row_index+1 to account for the title row in train.csv
+        date_object = datetime.strptime(training_data[row_index][0].astype('str'), '%Y-%m-%d %H:%M:%S')        
+        
+        X_train[row_index][0] = date_object.month
+        X_train[row_index][1] = date_object.isoweekday()
+        X_train[row_index][2] = date_object.hour
+
+    #return the filtered/exploded data
+    return X_train
 
 #method to filter, cut, and update the X data for both training and testing
 def filter_X(training_data, header_present=False):
@@ -105,6 +143,9 @@ def filter_X(training_data, header_present=False):
             X_train[row_index][0] = day_to_sin_val(date_object.timetuple().tm_yday)
             #print "datetime: %s\t tm_yday: %s\t day_to_sin_val: %s" %(str(date_object),str(date_object.timetuple().tm_yday),X_train[row_index][0])
             X_train[row_index][1] = hour_to_sin_val(date_object.hour)
+        
+            #X_train[row_index][0] = date_object.month
+            #X_train[row_index][1] = date_object.hour
         
             #just translate all other information untouched into the filtered data
             X_train[row_index][2] = training_data[row_index+1][1]
@@ -130,6 +171,9 @@ def filter_X(training_data, header_present=False):
         X_train[row_index][0] = day_to_sin_val(date_object.timetuple().tm_yday)
         #print "datetime: %s\t tm_yday: %s\t day_to_sin_val: %s" %(str(date_object),str(date_object.timetuple().tm_yday),X_train[row_index][0])
         X_train[row_index][1] = hour_to_sin_val(date_object.hour)
+    
+        #X_train[row_index][0] = date_object.month
+        #X_train[row_index][1] = date_object.hour
     
         #just translate all other information untouched into the filtered data
         X_train[row_index][2] = training_data[row_index][1]
