@@ -19,9 +19,9 @@ def main():
     data_test['hour'] = data_test.index.hour
     data_test['dayofweek'] = data_test.index.weekday
     data_test['month'] = data_test.index.month
-                
+        
     #build two data sets: one for registered users and one for casual, splitting data here as appropriate
-    X_selected_cols = [u'weather',u'month',u'dayofweek',u'hour']
+    X_selected_cols = [u'weather',u'month',u'dayofweek',u'hour',u'season',u'holiday',u'workingday',u'temp',u'atemp',u'humidity',u'windspeed']
     X_train = data_train[X_selected_cols]
     X_test = data_test[X_selected_cols]
     y_train_reg = np.log(pd.Series(data_train['registered'], dtype='float'))
