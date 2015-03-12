@@ -4,6 +4,7 @@ import pandas as pd
 import math
 from sklearn import ensemble
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 def main():
     
@@ -15,7 +16,6 @@ def main():
     data_train['hour'] = data_train.index.hour
     data_train['dayofweek'] = data_train.index.weekday
     data_train['month'] = data_train.index.month
-    data_test['datetime'] = data_test.index
     data_test['hour'] = data_test.index.hour
     data_test['dayofweek'] = data_test.index.weekday
     data_test['month'] = data_test.index.month
@@ -58,6 +58,22 @@ def main():
     
     #printing to csv
     y_test.to_csv('simple_output.csv', columns=['datetime', 'count'], index=0)
+
+    
+    plt.plot(data_train.index, data_train['count'])
+    plt.show()
+    """
+    plt.plot(data_test['atemp'], y_test['count'], 'ro')
+    plt.show()
+    plt.plot(data_test['hour'], y_test['count'], 'ro')
+    plt.show()
+    plt.plot(data_test['dayofweek'], y_test['count'], 'ro')
+    plt.show()
+    """
+    
+    #plot important data
+    plt.figure()
+    y_test.plot(x='datetime', y='count')
 
 if __name__=="__main__":
     main()
