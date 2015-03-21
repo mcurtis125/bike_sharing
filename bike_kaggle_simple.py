@@ -139,10 +139,9 @@ def main():
     
     #plot average count for each season
     season_count = data_train.groupby('season').agg({'count': [np.mean, np.std]})
-    print season_count.index
     #droplevel statement just allows access to the mean and std columns
     season_count.columns = season_count.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Weather VS. Mean Count')
+    plt.figure().canvas.set_window_title('Training Data: Season VS. Mean Count')
     #plot each bar
     bar_width = 0.5
     plt.bar(season_count.index, season_count['mean'], bar_width, yerr=season_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
@@ -150,16 +149,35 @@ def main():
     plt.xticks(season_count.index, ('Spring','Summer','Fall','Winter'))
     plt.ylabel('Mean Count')
     plt.xlabel('Season')
-    plt.title('Training Data: Weather VS. Mean Count')
+    plt.title('Training Data: Season VS. Mean Count')
     plt.show()
     
-    """
     #plot temperature vs count
-
-    atemp_count = data_train.groupby( pd.cut(data_train['atemp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std]})
+    print "\natemp_count"
+    atemp_count = data_train.groupby( pd.cut(data_train['atemp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
     #droplevel statement just allows access to the mean and std columns
     atemp_count.columns = atemp_count.columns.droplevel(0)
-    print atemp_count.index
+    print atemp_count
+    
+    print "\ntemp_count"
+    temp_count = data_train.groupby( pd.cut(data_train['temp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    temp_count.columns = temp_count.columns.droplevel(0)
+    print temp_count
+    
+    print "\nhum_count"
+    hum_count = data_train.groupby( pd.cut(data_train['humidity'], np.arange(5, 101, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    hum_count.columns = hum_count.columns.droplevel(0)
+    print hum_count
+    
+    print "\nwind_count"
+    wind_count = data_train.groupby( pd.cut(data_train['windspeed'], np.arange(5, 63, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    wind_count.columns = wind_count.columns.droplevel(0)
+    print wind_count
+    
+    """
     plt.figure().canvas.set_window_title('Training Data: Temperature VS. Mean Count')
     #plot each bar
     bar_width = 0.4
@@ -173,15 +191,6 @@ def main():
     plt.show()
     """
     
-    
-    """
-    plt.plot(data_test['atemp'], y_test['count'], 'ro')
-    plt.show()
-    plt.plot(data_test['hour'], y_test['count'], 'ro')
-    plt.show()
-    plt.plot(data_test['dayofweek'], y_test['count'], 'ro')
-    plt.show()
-    """
 
 if __name__=="__main__":
     main()
