@@ -66,27 +66,27 @@ def main():
     plt.xlabel('Datetime')
     plt.show()
     
-    #plot day of week vs mean count on day for each count type
-    day_count = data_train.groupby('dayofweek').agg({'count': [np.mean, np.std] })
-    day_reg = data_train.groupby('dayofweek').agg({'registered': [np.mean, np.std] })
-    day_cas = data_train.groupby('dayofweek').agg({'casual': [np.mean, np.std] })
-    #droplevel statement just allows access to the mean and std columns
-    day_count.columns = day_count.columns.droplevel(0)
-    day_reg.columns = day_reg.columns.droplevel(0)
-    day_cas.columns = day_cas.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Day of Week VS. Mean Count on Day')
-    #plot each bar
-    bar_width = 0.3
-    plt.bar(day_cas.index, day_cas['mean'], bar_width, yerr=day_cas['std'], alpha=0.4, color='r', ecolor='r', label='Casual')
-    plt.bar(day_reg.index + bar_width, day_reg['mean'], bar_width, yerr=day_reg['std'], alpha=0.4, color='g', ecolor='g', label='Registered')
-    plt.bar(day_count.index + 2*bar_width, day_count['mean'], bar_width, yerr=day_count['std'], alpha=0.4, color='b', ecolor='b', label='Count')
-    #chart labeling
-    plt.xticks(day_cas.index + (1.5)*bar_width, ('Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'))
-    plt.ylabel('Mean Count')
-    plt.xlabel('Day of Week')
-    plt.title('Training Data: Day of Week VS. Mean Count on Day')
-    plt.legend()
-    plt.show()
+    # #plot day of week vs mean count on day for each count type
+    # day_count = data_train.groupby('dayofweek').agg({'count': [np.mean, np.std] })
+    # day_reg = data_train.groupby('dayofweek').agg({'registered': [np.mean, np.std] })
+    # day_cas = data_train.groupby('dayofweek').agg({'casual': [np.mean, np.std] })
+    # #droplevel statement just allows access to the mean and std columns
+    # day_count.columns = day_count.columns.droplevel(0)
+    # day_reg.columns = day_reg.columns.droplevel(0)
+    # day_cas.columns = day_cas.columns.droplevel(0)
+    # plt.figure().canvas.set_window_title('Training Data: Day of Week VS. Mean Count on Day')
+    # #plot each bar
+    # bar_width = 0.3
+    # plt.bar(day_cas.index, day_cas['mean'], bar_width, yerr=day_cas['std'], alpha=0.4, color='r', ecolor='r', label='Casual')
+    # plt.bar(day_reg.index + bar_width, day_reg['mean'], bar_width, yerr=day_reg['std'], alpha=0.4, color='g', ecolor='g', label='Registered')
+    # plt.bar(day_count.index + 2*bar_width, day_count['mean'], bar_width, yerr=day_count['std'], alpha=0.4, color='b', ecolor='b', label='Count')
+    # #chart labeling
+    # plt.xticks(day_cas.index + (1.5)*bar_width, ('Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'))
+    # plt.ylabel('Mean Count')
+    # plt.xlabel('Day of Week')
+    # plt.title('Training Data: Day of Week VS. Mean Count on Day')
+    # plt.legend()
+    # plt.show()
     
     #plot by hour average count for each hour in the day on weekend and and weekdays
     hour_workday = data_train[(data_train['dayofweek'] < 5)].groupby('hour').agg({'count': [np.mean, np.std]})
@@ -107,50 +107,50 @@ def main():
     plt.legend()
     plt.show()
     
-    #plot average count for each month
-    month_count = data_train.groupby('month').agg({'count': [np.mean, np.std]})
-    #droplevel statement just allows access to the mean and std columns
-    month_count.columns = month_count.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Month VS. Mean Count During Month')
-    #plot each bar
-    bar_width = 0.5
-    plt.bar(month_count.index, month_count['mean'], bar_width, yerr=month_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
-    #chart labeling
-    plt.xticks(month_count.index, ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'))
-    plt.ylabel('Mean Count')
-    plt.xlabel('Month')
-    plt.title('Training Data: Month VS. Mean Count During Month')
-    plt.show()
+    # #plot average count for each month
+    # month_count = data_train.groupby('month').agg({'count': [np.mean, np.std]})
+    # #droplevel statement just allows access to the mean and std columns
+    # month_count.columns = month_count.columns.droplevel(0)
+    # plt.figure().canvas.set_window_title('Training Data: Month VS. Mean Count During Month')
+    # #plot each bar
+    # bar_width = 0.5
+    # plt.bar(month_count.index, month_count['mean'], bar_width, yerr=month_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    # #chart labeling
+    # plt.xticks(month_count.index, ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'))
+    # plt.ylabel('Mean Count')
+    # plt.xlabel('Month')
+    # plt.title('Training Data: Month VS. Mean Count During Month')
+    # plt.show()
     
-    #plot average count for each weather type
-    weather_count = data_train.groupby('weather').agg({'count': [np.mean, np.std]})
-    #droplevel statement just allows access to the mean and std columns
-    weather_count.columns = weather_count.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Weather VS. Mean Count')
-    #plot each bar
-    bar_width = 0.5
-    plt.bar(weather_count.index, weather_count['mean'], bar_width, yerr=weather_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
-    #chart labeling
-    plt.xticks(weather_count.index, ('Clear/Cloudy','Mist/Cloudy','Light/Scattered Snow/Rain','Heavy Weather'))
-    plt.ylabel('Mean Count')
-    plt.xlabel('Weather Type')
-    plt.title('Training Data: Weather VS. Mean Count')
-    plt.show()
+    # #plot average count for each weather type
+    # weather_count = data_train.groupby('weather').agg({'count': [np.mean, np.std]})
+    # #droplevel statement just allows access to the mean and std columns
+    # weather_count.columns = weather_count.columns.droplevel(0)
+    # plt.figure().canvas.set_window_title('Training Data: Weather VS. Mean Count')
+    # #plot each bar
+    # bar_width = 0.5
+    # plt.bar(weather_count.index, weather_count['mean'], bar_width, yerr=weather_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    # #chart labeling
+    # plt.xticks(weather_count.index, ('Clear/Cloudy','Mist/Cloudy','Light/Scattered Snow/Rain','Heavy Weather'))
+    # plt.ylabel('Mean Count')
+    # plt.xlabel('Weather Type')
+    # plt.title('Training Data: Weather VS. Mean Count')
+    # plt.show()
     
-    #plot average count for each season
-    season_count = data_train.groupby('season').agg({'count': [np.mean, np.std]})
-    #droplevel statement just allows access to the mean and std columns
-    season_count.columns = season_count.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Season VS. Mean Count')
-    #plot each bar
-    bar_width = 0.5
-    plt.bar(season_count.index, season_count['mean'], bar_width, yerr=season_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
-    #chart labeling
-    plt.xticks(season_count.index, ('Spring','Summer','Fall','Winter'))
-    plt.ylabel('Mean Count')
-    plt.xlabel('Season')
-    plt.title('Training Data: Season VS. Mean Count')
-    plt.show()
+    # #plot average count for each season
+    # season_count = data_train.groupby('season').agg({'count': [np.mean, np.std]})
+    # #droplevel statement just allows access to the mean and std columns
+    # season_count.columns = season_count.columns.droplevel(0)
+    # plt.figure().canvas.set_window_title('Training Data: Season VS. Mean Count')
+    # #plot each bar
+    # bar_width = 0.5
+    # plt.bar(season_count.index, season_count['mean'], bar_width, yerr=season_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    # #chart labeling
+    # plt.xticks(season_count.index, ('Spring','Summer','Fall','Winter'))
+    # plt.ylabel('Mean Count')
+    # plt.xlabel('Season')
+    # plt.title('Training Data: Season VS. Mean Count')
+    # plt.show()
     
     #plot temperature vs count
     print "\natemp_count"
