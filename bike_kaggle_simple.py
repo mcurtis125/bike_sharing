@@ -217,7 +217,6 @@ def main():
     plt.ylabel('Mean Count')
     plt.xlabel('Windspeed')
     plt.show()
-    
 
 if __name__=="__main__":
     main()
