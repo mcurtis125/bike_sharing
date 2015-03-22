@@ -67,9 +67,10 @@ def main():
     plt.show()
     
     #plot day of week vs mean count on day for each count type
-    day_count = data_train.groupby('dayofweek').agg({'count': [np.mean, np.std] })
-    day_reg = data_train.groupby('dayofweek').agg({'registered': [np.mean, np.std] })
-    day_cas = data_train.groupby('dayofweek').agg({'casual': [np.mean, np.std] })
+    data_train_night = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6))]
+    day_count = data_train_night.groupby('dayofweek').agg({'count': [np.mean, np.std] })
+    day_reg = data_train_night.groupby('dayofweek').agg({'registered': [np.mean, np.std] })
+    day_cas = data_train_night.groupby('dayofweek').agg({'casual': [np.mean, np.std] })
     #droplevel statement just allows access to the mean and std columns
     day_count.columns = day_count.columns.droplevel(0)
     day_reg.columns = day_reg.columns.droplevel(0)
@@ -84,7 +85,7 @@ def main():
     plt.xticks(day_cas.index + (1.5)*bar_width, ('Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'))
     plt.ylabel('Mean Count')
     plt.xlabel('Day of Week')
-    plt.title('Training Data: Day of Week VS. Mean Count on Day')
+    plt.title('Training Data: Day of Week VS. Mean Count on Day\n(Note: Hours included are from 12am to 5am)')
     plt.legend()
     plt.show()
     
@@ -108,7 +109,8 @@ def main():
     plt.show()
     
     #plot average count for each month
-    month_count = data_train.groupby('month').agg({'count': [np.mean, np.std]})
+    data_train_night = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)]
+    month_count = data_train_night.groupby('month').agg({'count': [np.mean, np.std]})
     #droplevel statement just allows access to the mean and std columns
     month_count.columns = month_count.columns.droplevel(0)
     plt.figure().canvas.set_window_title('Training Data: Month VS. Mean Count During Month')
@@ -119,11 +121,11 @@ def main():
     plt.xticks(month_count.index, ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'))
     plt.ylabel('Mean Count')
     plt.xlabel('Month')
-    plt.title('Training Data: Month VS. Mean Count During Month')
+    plt.title('Training Data: Month VS. Mean Count During Month\n(Note: Hours included are from 12am to 5am on work days)')
     plt.show()
     
     #plot average count for each weather type
-    weather_count = data_train.groupby('weather').agg({'count': [np.mean, np.std]})
+    weather_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby('weather').agg({'count': [np.mean, np.std]})
     #droplevel statement just allows access to the mean and std columns
     weather_count.columns = weather_count.columns.droplevel(0)
     plt.figure().canvas.set_window_title('Training Data: Weather VS. Mean Count')
@@ -134,11 +136,11 @@ def main():
     plt.xticks(weather_count.index, ('Clear/Cloudy','Mist/Cloudy','Light/Scattered Snow/Rain','Heavy Weather'))
     plt.ylabel('Mean Count')
     plt.xlabel('Weather Type')
-    plt.title('Training Data: Weather VS. Mean Count')
+    plt.title('Training Data: Weather VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
     plt.show()
     
     #plot average count for each season
-    season_count = data_train.groupby('season').agg({'count': [np.mean, np.std]})
+    season_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby('season').agg({'count': [np.mean, np.std]})
     #droplevel statement just allows access to the mean and std columns
     season_count.columns = season_count.columns.droplevel(0)
     plt.figure().canvas.set_window_title('Training Data: Season VS. Mean Count')
@@ -149,47 +151,72 @@ def main():
     plt.xticks(season_count.index, ('Spring','Summer','Fall','Winter'))
     plt.ylabel('Mean Count')
     plt.xlabel('Season')
-    plt.title('Training Data: Season VS. Mean Count')
+    plt.title('Training Data: Season VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
     plt.show()
     
     #plot temperature vs count
-    print "\natemp_count"
-    atemp_count = data_train.groupby( pd.cut(data_train['atemp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    atemp_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby( pd.cut(data_train['atemp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
     #droplevel statement just allows access to the mean and std columns
+    atemp_count = atemp_count.head(-4)
     atemp_count.columns = atemp_count.columns.droplevel(0)
-    print atemp_count
-    
-    print "\ntemp_count"
-    temp_count = data_train.groupby( pd.cut(data_train['temp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
-    #droplevel statement just allows access to the mean and std columns
-    temp_count.columns = temp_count.columns.droplevel(0)
-    print temp_count
-    
-    print "\nhum_count"
-    hum_count = data_train.groupby( pd.cut(data_train['humidity'], np.arange(5, 101, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
-    #droplevel statement just allows access to the mean and std columns
-    hum_count.columns = hum_count.columns.droplevel(0)
-    print hum_count
-    
-    print "\nwind_count"
-    wind_count = data_train.groupby( pd.cut(data_train['windspeed'], np.arange(5, 63, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
-    #droplevel statement just allows access to the mean and std columns
-    wind_count.columns = wind_count.columns.droplevel(0)
-    print wind_count
-    
-    """
-    plt.figure().canvas.set_window_title('Training Data: Temperature VS. Mean Count')
-    #plot each bar
-    bar_width = 0.4
-    plt.bar(atemp_count.index, atemp_count['mean'], bar_width, yerr=atemp_count['std'], alpha=0.4, color='g', ecolor='g', label='Feels Like')
-    #chart labeling
-    #plt.xticks(atemp_count.index + bar_width, atemp_count.index)
+    print "\natemp_count"
+    print atemp_count;
+    plt.figure().canvas.set_window_title('Training Data: Apparent Temperature vs Mean Count')
+    bar_width = 1.0
+    bins = 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36
+    plt.bar(bins, atemp_count['mean'], bar_width, yerr=atemp_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    plt.title('Training Data: Apparent Temperature VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
     plt.ylabel('Mean Count')
     plt.xlabel('Temperature')
-    plt.title('Training Data: Temperature VS. Mean Count')
-    plt.legend()
     plt.show()
-    """
+    
+    #plot actual temperature vs count
+    temp_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby( pd.cut(data_train['temp'], np.arange(0, 47, 2)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    temp_count = temp_count.head(-7)
+    temp_count.columns = temp_count.columns.droplevel(0)
+    print "\ntemp_count"
+    print temp_count;
+    plt.figure().canvas.set_window_title('Training Data: Actual Temperature vs Mean Count')
+    bar_width = 1.0
+    bins = 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30
+    plt.bar(bins, temp_count['mean'], bar_width, yerr=temp_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    plt.title('Training Data: Actual Temperature VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
+    plt.ylabel('Mean Count')
+    plt.xlabel('Temperature')
+    plt.show()
+    
+    #plot humidity vs count
+    hum_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby( pd.cut(data_train['humidity'], np.arange(20, 101, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    #hum_count = hum_count.head(-4)
+    hum_count.columns = hum_count.columns.droplevel(0)
+    print "\nhum_count"
+    print hum_count;
+    plt.figure().canvas.set_window_title('Training Data: Humidity vs Mean Count')
+    bar_width = 2.0
+    bins = 20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95
+    plt.bar(bins, hum_count['mean'], bar_width, yerr=hum_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    plt.title('Training Data: Humidity VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
+    plt.ylabel('Mean Count')
+    plt.xlabel('Humidity')
+    plt.show()
+    
+    #plot windspeed vs count
+    wind_count = data_train[((data_train['hour'] > 23) | (data_train['hour'] < 6)) & (data_train['workingday'] == 1)].groupby( pd.cut(data_train['windspeed'], np.arange(5, 63, 5)) ).agg({'count' : [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    wind_count = wind_count.head(-4)
+    wind_count.columns = wind_count.columns.droplevel(0)
+    print "\nwind_count"
+    print wind_count;
+    plt.figure().canvas.set_window_title('Training Data: Windspeed vs Mean Count')
+    bar_width = 2.0
+    bins = 5,10,15,20,25,30,35
+    plt.bar(bins, wind_count['mean'], bar_width, yerr=wind_count['std'], align='center', alpha=0.4, color='b', ecolor='b')
+    plt.title('Training Data: Windspeed VS. Mean Count\n(Note: Hours included are from 12am to 5am on work days)')
+    plt.ylabel('Mean Count')
+    plt.xlabel('Windspeed')
+    plt.show()
     
 
 if __name__=="__main__":

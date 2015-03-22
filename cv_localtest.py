@@ -29,7 +29,7 @@ def main():
     #create models
     clf_reg = DecisionTreeRegressor(max_depth=9)
     clf_cas = DecisionTreeRegressor(max_depth=9)
-
+    
     #compute scores, print accuracy
     scores_reg = cross_validation.cross_val_score(clf_reg, X_train, y_train_reg, 'mean_squared_error')
     scores_cas = cross_validation.cross_val_score(clf_cas, X_train, y_train_cas, 'mean_squared_error')
