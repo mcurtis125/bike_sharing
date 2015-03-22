@@ -8,23 +8,33 @@ import matplotlib.pyplot as plt
 
 def main():
     
-    #gather data from train.csv and split into test and training data
+    #gather data from train and test csv 
     data = pd.read_csv('train.csv', skipinitialspace=1, index_col=0, parse_dates=True)
-    msk = np.random.rand(len(data)) < 0.8
-    data_train = data[msk]
-    data_test = data[~msk]
-    
-    pd.options.mode.chained_assignment = None
-    print data_train.is_copy
     
     #explode datetime into hour, dayofweek, and month
-    data_train['hour'] = data_train.index.hour
-    data_train['dayofweek'] = data_train.index.weekday
-    data_train['month'] = data_train.index.month
-    data_test['hour'] = data_test.index.hour
-    data_test['dayofweek'] = data_test.index.weekday
-    data_test['month'] = data_test.index.month
-        
+    data['hour'] = data.index.hour
+    data['dayofweek'] = data.index.weekday
+    data['month'] = data.index.month
+    data['weekofyear'] =data.index.weekofyear
+    
+    #split the training data into a validation split
+    data_train = data[data['weekofyear'] % 2 == 0]
+    data_test = data[data['weekofyear'] % 2 != 0]
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(data_train.index, data_train['count'], '-yo')
+    plt.title('Training Data: Datetime VS. Count')
+    plt.ylabel('Count')
+    plt.xlabel('Datetime')
+    
+    plt.subplot(2, 1, 2)
+    plt.plot(data_test.index, data_test['count'], '-yo')
+    plt.title('Training Data: Datetime VS. Count')
+    plt.ylabel('Count')
+    plt.xlabel('Datetime')
+    
+    plt.show()
+    
     #build two data sets: one for registered users and one for casual, splitting data here as appropriate
     X_selected_cols = [u'weather',u'month',u'dayofweek',u'hour',u'season',u'holiday',u'workingday',u'temp',u'atemp',u'humidity',u'windspeed']
     X_train = data_train[X_selected_cols]
@@ -35,7 +45,7 @@ def main():
     y_train_cas[y_train_cas < 0] = 0
     
     #creating the registered and casual models for ride share demand
-    params = {'n_estimators': 1000, 'max_depth': 4, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
+    params = {'n_estimators': 1000, 'max_depth': 3, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
     clf_reg = ensemble.GradientBoostingRegressor(**params)
     clf_cas = ensemble.GradientBoostingRegressor(**params)
     
@@ -54,19 +64,16 @@ def main():
     #add together to find predicted count
     y_test = y_test_reg + y_test_cas
     
-    #groom for display and scoring
+    #groom for csv printing
     y_test_datetime = pd.DataFrame(data_test.index, columns=['datetime'])
     y_test_count = pd.DataFrame(y_test, dtype='float', columns=['count'])
     y_test = pd.DataFrame()
     y_test['datetime'] = y_test_datetime['datetime']
     y_test['count'] = y_test_count['count']
     
-    print y_test
-    print data_test['count']
+    #printing to csv
+    y_test.to_csv('simple_output.csv', columns=['datetime', 'count'], index=0)
     
-    #plot important data
-    plt.figure()
-    y_test.plot(x='datetime', y='count')
 
 if __name__=="__main__":
     main()

@@ -30,7 +30,7 @@ def main():
     y_train_cas[y_train_cas < 0] = 0
     
     #creating the registered and casual models for ride share demand
-    params = {'n_estimators': 1000, 'max_depth': 3, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
+    params = {'n_estimators': 1000, 'max_depth': 7, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
     clf_reg = ensemble.GradientBoostingRegressor(**params)
     clf_cas = ensemble.GradientBoostingRegressor(**params)
     
