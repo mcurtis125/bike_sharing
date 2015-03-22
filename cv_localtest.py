@@ -39,6 +39,7 @@ def main():
     #create models
     clf_reg = DecisionTreeRegressor(max_depth=9)
     clf_cas = DecisionTreeRegressor(max_depth=9)
+<<<<<<< HEAD
 
     # #compute scores, print accuracy
     # scores_reg = cross_validation.cross_val_score(clf_reg, X_train, y_train_evenweek, 'mean_squared_error')
@@ -49,6 +50,13 @@ def main():
     scores_evenweek = evaluation(X_train, y_train_evenweek);
     scores_oddweek = evaluation(X_train, y_train_oddweek);
     print "Accuracy: ((scores_evenweek.mean() + scores_oddweek.mean()) / 2)"
+=======
+    
+    #compute scores, print accuracy
+    scores_reg = cross_validation.cross_val_score(clf_reg, X_train, y_train_reg, 'mean_squared_error')
+    scores_cas = cross_validation.cross_val_score(clf_cas, X_train, y_train_cas, 'mean_squared_error')
+    print "Accuracy: %0.2f " % ((-scores_reg.mean() + -scores_cas.mean()) / 2)
+>>>>>>> a09a61faa1361dbe0e60918ec71d76f915066268
 
 #method to print our kaggle score if we were to submit this algorithm
 def evaluation(predicted, actual):
