@@ -22,6 +22,7 @@ def main():
     data_train = data[data['weekofyear'] % 2 == 0]
     data_test = data[data['weekofyear'] % 2 != 0]
     
+    """
     plt.subplot(2, 1, 1)
     plt.plot(data_train.index, data_train['count'], '-yo')
     plt.title('Training Data: Datetime VS. Count')
@@ -33,6 +34,7 @@ def main():
     plt.title('Training Data: Datetime VS. Count')
     plt.ylabel('Count')
     plt.xlabel('Datetime')
+    """
     
     plt.show()
     
@@ -46,7 +48,7 @@ def main():
     y_train_cas[y_train_cas < 0] = 0
     
     #creating the registered and casual models for ride share demand
-    params = {'n_estimators': 1000, 'max_depth': 3, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
+    params = {'n_estimators': 1000, 'max_depth': 5, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
     clf_reg = ensemble.GradientBoostingRegressor(**params)
     clf_cas = ensemble.GradientBoostingRegressor(**params)
     
@@ -72,8 +74,40 @@ def main():
     y_test['datetime'] = y_test_datetime['datetime']
     y_test['count'] = y_test_count['count']
 	
+    #find the error for graphing
+    y_test['logerror'] = pd.Series(np.log(np.array(y_test['count'])) - np.log(np.array(data_test['count'])))
+    y_test = y_test.set_index('datetime')
+    y_test['hour'] = y_test.index.hour
+    y_test['dayofweek'] = y_test.index.weekday
+    
+    plt.plot(y_test.index, y_test['logerror'], '-yo')
+    plt.title('Error vs time')
+    plt.ylabel('Squared Log Error')
+    plt.xlabel('Datetime')
+    plt.show()
+    
+    #plot by hour average count for each hour in the day on weekend and and weekdays
+    hour_workday = y_test[(y_test['dayofweek'] < 5)].groupby('hour').agg({'logerror': [np.mean, np.std, np.count_nonzero]})
+    hour_weekend = y_test[(y_test['dayofweek'] > 4)].groupby('hour').agg({'logerror': [np.mean, np.std, np.count_nonzero]})
+    #droplevel statement just allows access to the mean and std columns
+    hour_workday.columns = hour_workday.columns.droplevel(0)
+    hour_weekend.columns = hour_weekend.columns.droplevel(0)
+    plt.figure().canvas.set_window_title('Training Data: Hour in Day VS. Mean Error on Hour')
+    #plot each bar
+    bar_width = 0.4
+    plt.bar(hour_workday.index, hour_workday['mean'], bar_width, yerr=hour_workday['std'], alpha=0.4, color='b', ecolor='b', label='Workday')
+    plt.bar(hour_weekend.index + bar_width, hour_weekend['mean'], bar_width, yerr=hour_weekend['std'], alpha=0.4, color='g', ecolor='g', label='Weekend')
+    #chart labeling
+    plt.xticks(hour_workday.index + bar_width, hour_workday.index)
+    plt.ylabel('Mean Error: log(predicted) - log(actual)')
+    plt.xlabel('Hour in Day')
+    plt.title('Training Data: Hour in Day VS. Mean Error on Hour')
+    plt.legend()
+    plt.show()
+    
+    """
 	#plot squared log error by day
-    error = np.power( (np.log(np.array(data_test['count']) + 1) - np.log(np.array(y_test['count']) + 1)), 2 )
+    error = np.exp( (np.log(np.array(data_test['count']) + 1) - np.log(np.array(y_test['count']) + 1)), 2 )
     plt.subplot(2, 1, 1)
     plt.plot(y_test['datetime'], error, '-yo')
     plt.title('Error vs time')
@@ -96,12 +130,13 @@ def main():
 
     plt.show()
 	
+    
 	#print root mean squared log error
     print np.sqrt(np.sum(error)/error.size)
     
     #printing to csv
     y_test.to_csv('simple_output.csv', columns=['datetime', 'count'], index=0)
-	
+	"""
 
 if __name__=="__main__":
     main()
