@@ -48,7 +48,7 @@ def main():
     y_train_cas[y_train_cas < 0] = 0
     
     #creating the registered and casual models for ride share demand
-    params = {'n_estimators': 1000, 'max_depth': 1, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
+    params = {'n_estimators': 1000, 'max_depth': 5, 'min_samples_split': 1,'learning_rate': 0.01, 'loss': 'ls'}
     clf_reg = ensemble.GradientBoostingRegressor(**params)
     clf_cas = ensemble.GradientBoostingRegressor(**params)
     
@@ -92,7 +92,7 @@ def main():
     #droplevel statement just allows access to the mean and std columns
     hour_workday.columns = hour_workday.columns.droplevel(0)
     hour_weekend.columns = hour_weekend.columns.droplevel(0)
-    plt.figure().canvas.set_window_title('Training Data: Hour in Day VS. Mean Count on Hour')
+    plt.figure().canvas.set_window_title('Training Data: Hour in Day VS. Mean Error on Hour')
     #plot each bar
     bar_width = 0.4
     plt.bar(hour_workday.index, hour_workday['mean'], bar_width, yerr=hour_workday['std'], alpha=0.4, color='b', ecolor='b', label='Workday')
