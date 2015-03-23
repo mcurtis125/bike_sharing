@@ -72,13 +72,28 @@ def main():
     y_test['datetime'] = y_test_datetime['datetime']
     y_test['count'] = y_test_count['count']
 	
-	#plot squared log error
-    plt.figure().canvas.set_window_title('Predicted vs Actual (Error)')
+	#plot squared log error by day
     error = np.power( (np.log(np.array(data_test['count']) + 1) - np.log(np.array(y_test['count']) + 1)), 2 )
+    plt.subplot(2, 1, 1)
     plt.plot(y_test['datetime'], error, '-yo')
-    plt.title('Predicted vs Actual (Error)')
+    plt.title('Error vs time')
     plt.ylabel('Squared Log Error')
     plt.xlabel('Datetime')
+    
+    #plot number of errors by time of day (# errors above a threshold)
+    plt.subplot(2, 1, 2)
+    error_hour = np.zeros(24)
+    for i in range(0,error.size-1):
+        if error[i] > 2:
+            error_hour[data_test['hour'][i]] = error_hour[data_test['hour'][i]]+1
+    x = np.arange(0, 24, 1)
+    bar_width = 1
+    plt.bar(x, error_hour, 1, color='y', ecolor='y', label='#Errors > 0.5')
+    plt.xticks(x)
+    plt.title('Error vs hour of the day')
+    plt.ylabel('# Errors > 2')
+    plt.xlabel('Hour of the day')
+
     plt.show()
 	
 	#print root mean squared log error
