@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import math
-from sklearn import ensemble, cross_validation
+from sklearn import ensemble, cross_validation 
+from sklearn.metrics import mean_squared_error
 from datetime import datetime
 import matplotlib.pyplot as plt
 
@@ -15,7 +16,7 @@ def main():
     data['hour'] = data.index.hour
     data['dayofweek'] = data.index.weekday
     data['month'] = data.index.month
-    data['weekofyear'] =data.index.weekofyear
+    data['weekofyear'] = data.index.weekofyear
     
     #split the training data into a validation split
     data_train = data[data['weekofyear'] % 2 == 0]
@@ -70,10 +71,22 @@ def main():
     y_test = pd.DataFrame()
     y_test['datetime'] = y_test_datetime['datetime']
     y_test['count'] = y_test_count['count']
+	
+	#plot squared log error
+    plt.figure().canvas.set_window_title('Predicted vs Actual (Error)')
+    error = np.power( (np.log(np.array(data_test['count']) + 1) - np.log(np.array(y_test['count']) + 1)), 2 )
+    plt.plot(y_test['datetime'], error, '-yo')
+    plt.title('Predicted vs Actual (Error)')
+    plt.ylabel('Squared Log Error')
+    plt.xlabel('Datetime')
+    plt.show()
+	
+	#print root mean squared log error
+    print np.sqrt(np.sum(error)/error.size)
     
     #printing to csv
     y_test.to_csv('simple_output.csv', columns=['datetime', 'count'], index=0)
-    
+	
 
 if __name__=="__main__":
     main()
