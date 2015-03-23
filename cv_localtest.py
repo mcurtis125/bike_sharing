@@ -29,46 +29,29 @@ def main():
     y_train_cas[y_train_cas < 0] = 0
 
     #build two data sets: one for the first half year and one for the second half year
-    #y_train_firsthalf= data_train[(data_train['weekofyear'] <26)]
-    y_train_evenweek= np.log(pd.Series(data_train['weekofyear'], dtype='int'))
-    y_train_evenweek[y_train_reg %2 == 0] = 0
-    y_test_oddweek= np.log(pd.Series(data_train['weekofyear'], dtype='int'))
-    y_test_oddweek[y_train_reg % 2 != 0] = 0
+    #y_train_firsthalf= data_train[((data_train['weekofyear'] %2 == 0))]
+    y_train_evenweek= data_train[((data_train['weekofyear'] %2 == 0))]
+    #y_train_evenweek[y_train_reg %2 == 0] = 0
+    y_test_oddweek= data_train[((data_train['weekofyear'] %2 != 0))]
+   # y_test_oddweek[y_train_reg % 2 != 0] = 0
 
+    y_train_evenweek['count'] = pd.DataFrame(y_train_evenweek, dtype='int', columns=['count'])
+    y_test_oddweek['count'] = pd.DataFrame(y_test_oddweek, dtype='int', columns=['count'])
 
-    #create models
-    clf_reg = DecisionTreeRegressor(max_depth=9)
-    clf_cas = DecisionTreeRegressor(max_depth=9)
-<<<<<<< HEAD
+    #compute error by taking log square
+    count_error = np.power(np.log(y_train_evenweek['count']+1) - np.log(y_test_oddweek['count']+1),2)
+    print count_error.head(10)
+    print  y_train_evenweek['count'].head(10)
+    print y_test_oddweek['count'].head(10)
 
-    # #compute scores, print accuracy
-    # scores_reg = cross_validation.cross_val_score(clf_reg, X_train, y_train_evenweek, 'mean_squared_error')
-    # scores_cas = cross_validation.cross_val_score(clf_cas, X_train, y_test_oddweek, 'mean_squared_error')
-    # print "Accuracy: %0.2f " % ((-scores_reg.mean() + -scores_cas.mean()) / 2)
-
-    #computer score using log square
-    scores_evenweek = evaluation(X_train, y_train_evenweek);
-    scores_oddweek = evaluation(X_train, y_train_oddweek);
-    print "Accuracy: ((scores_evenweek.mean() + scores_oddweek.mean()) / 2)"
-=======
-    
-    #compute scores, print accuracy
-    scores_reg = cross_validation.cross_val_score(clf_reg, X_train, y_train_reg, 'mean_squared_error')
-    scores_cas = cross_validation.cross_val_score(clf_cas, X_train, y_train_cas, 'mean_squared_error')
-    print "Accuracy: %0.2f " % ((-scores_reg.mean() + -scores_cas.mean()) / 2)
->>>>>>> a09a61faa1361dbe0e60918ec71d76f915066268
-
-#method to print our kaggle score if we were to submit this algorithm
-def evaluation(predicted, actual):
-    sum = 0
-    for row_index in range(0, len(actual) - 1):
-        pi = float(predicted[row_index][0])
-        ai = float(actual[row_index][0])
-        sum += log_sq_diff(pi, ai)
-    print "Evaluation Score = %f" % ( math.sqrt( (1/float(len(predicted))) * sum ) )
-#method to find the log squared diffence between predicted and actual
-def log_sq_diff(pi, ai):
-    return math.pow( (math.log(pi + 1) - math.log(ai + 1)), 2 )
- 
+    # even_count = y_train_evenweek.groupby('weekofyear').agg({'count': [np.mean, np.std] })
+    # even_count.columns = even_count.columns.droplevel(0)
+    # plt.figure().canvas.set_window_title('Bike Count in even weeks')
+    # bar_width = 0.5
+    # plt.bar(y_train_evenweek.index , even_count['mean'], bar_width, alpha=0.4, color='b', ecolor='r', label='Count')
+    # plt.ylabel('Mean Count')
+    # plt.xlabel('Even Weeks')
+    # plt.title ('Bike Count in even weeks')
+    # plt.show()
 if __name__=="__main__":
     main()
